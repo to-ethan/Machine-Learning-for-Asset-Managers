@@ -58,9 +58,9 @@ def getBinsFromTrend(molecule, close, span):
             df_tval.loc[dt1] = tValLinR(df1.values) #calculates t-statistics on period
         dt1 = df_tval.replace([-np.inf, np.inf, np.nan], 0).abs().idxmax() #get largest t-statistics calculated over span period
 
-        print(df_tval.index[-1])
-        print(dt1)
-        print(abs(df_tval.values).argmax() + minWindow)
+        # print(df_tval.index[-1])
+        # print(dt1)
+        # print(abs(df_tval.values).argmax() + minWindow)
         out.loc[idx, ['t1', 'tVal', 'bin', 'windowSize']] = df_tval.index[-1], df_tval[dt1], np.sign(df_tval[dt1]), abs(df_tval.values).argmax() + minWindow #prevent leakage
     out['t1'] = pd.to_datetime(out['t1'])
     out['bin'] = pd.to_numeric(out['bin'], downcast='signed')
@@ -79,12 +79,12 @@ if __name__ == '__main__':
     #snippet 5.3
     idx_range_from = 3
     idx_range_to = 10
-    df0 = pd.Series(np.random.normal(0, .1, 100)).cumsum()
+    df0 = pd.Series(np.random.normal(0, .1, 500)).cumsum()
     df0 += np.sin(np.linspace(0, 10, df0.shape[0]))
     df1 = getBinsFromTrend(df0.index, df0, [idx_range_from,idx_range_to,1]) #[3,10,1] = range(3,10)
     tValues = df1['tVal'].values #tVal
 
-    doNormalize = False
+    doNormalize = True
     #normalise t-values to -1, 1
     if doNormalize:
         np.min(tValues)
@@ -94,15 +94,25 @@ if __name__ == '__main__':
         plus_one = [i for i in range(0, len(tValues)) if tValues[i] > 0]
         tValues[plus_one] = tValues[plus_one] / np.max(tValues)
 
+    doThresholding = False
+    threshold = 0.25
+    if doThresholding:
+        sellArgs = [i for i in range(0, len(tValues)) if tValues[i] < -threshold]
+        tValues[sellArgs] = -1
+        buyArgs = [i for i in range(0, len(tValues)) if tValues[i] > threshold]
+        tValues[buyArgs] = 1
+        flatArgs = [i for i in range(0, len(tValues)) if tValues[i] >= -threshold and tValues[i] <= threshold]
+        tValues[flatArgs] = np.nan
+
     #+(idx_range_to-idx_range_from+1)
-    plt.scatter(df1.index, df0.loc[df1.index].values, c=tValues, cmap='viridis') #df1['tVal'].values, cmap='viridis')
+    plt.scatter(df1.index, df0.loc[df1.index].values, c=tValues, cmap='winter') #df1['tVal'].values, cmap='viridis')
     plt.plot(df0.index, df0.values, color='gray')
     plt.colorbar()
     plt.show()
     plt.savefig('fig5.2.png')
     plt.clf()
     plt.close()
-    plt.scatter(df1.index, df0.loc[df1.index].values, c=df1['bin'].values, cmap='vipridis')
+    plt.scatter(df1.index, df0.loc[df1.index].values, c=df1['bin'].values, cmap='winter')
 
     #Test methods
     ols_tvalue = tValLinR( np.array([3.0, 3.5, 4.0]) )

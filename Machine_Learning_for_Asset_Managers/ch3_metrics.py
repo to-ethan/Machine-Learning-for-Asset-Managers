@@ -35,7 +35,7 @@ def varInfo(x,y, bins, norm=False):
     return vXY
 
 #codesnippet 3.4 Correlation and normalized mutual information of two independent gaussian random variables
-def mutualInfor(x,y, norm=False):
+def mutualInfo(x,y, norm=False):
     #mutual information
     bXY = numBins(x.shape[0], corr = np.corrcoef(x,y)[0,1])
     cXY = np.histogram2d(x,y, bXY)[0]
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     
     #codesnippet 3.4
     size, seed = 5000, 0 
-    np.radom.seed(seed)
+    np.random.seed(seed)
     x = np.random.normal(size=size)
     e = np.random.normal(size=size)
     y = 0*x+e
